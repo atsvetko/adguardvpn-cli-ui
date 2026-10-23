@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdGuard VPN</title>
+<style>
+:root {
+  --bg: #f4f6f5; --panel: #ffffff; --text: #1d2321; --muted: #66706c; --line: #e2e7e5;
+  --accent: #2f9e6e; --accent-ink: #ffffff; --danger: #c8443a; --warn: #b7791f; --field: #f8faf9;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #121614; --panel: #1a201d; --text: #e6ebe8; --muted: #94a09b; --line: #2b3430;
+          --accent: #45b985; --accent-ink: #0b1510; --danger: #e5675c; --warn: #e0a23f; --field: #151a18; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Ubuntu, sans-serif; }
+header { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; }
+header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+header .ver { color: var(--muted); font-size: 12px; }
+header .sp { flex: 1; }
+nav { display: flex; gap: 4px; }
+nav button { background: none; border: 0; color: var(--muted); padding: 7px 12px; border-radius: 8px; cursor: pointer; font: inherit; }
+nav button.on { background: var(--bg); color: var(--text); font-weight: 600; }
+main { max-width: 920px; margin: 0 auto; padding: 22px 16px 120px; }
+section.tab { display: none; } section.tab.on { display: block; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; }
+.card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+.row { display: grid; grid-template-columns: 1fr minmax(180px, 300px); gap: 16px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.row .lbl b { display: block; font-weight: 550; }
+.row .lbl small { color: var(--muted); }
+.ctl { display: flex; gap: 6px; justify-content: flex-end; }
+input[type=text], input[type=number], input[type=password], select, textarea {
+  width: 100%; background: var(--field); border: 1px solid var(--line); color: var(--text);
+  border-radius: 8px; padding: 7px 10px; font: inherit; }
+textarea { resize: vertical; min-height: 60px; }
+button.b { background: var(--field); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 7px 14px; font: inherit; cursor: pointer; white-space: nowrap; }
+button.b:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .5; cursor: wait; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--field); color: var(--muted); padding: 7px 12px; cursor: pointer; font: inherit; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.switch { position: relative; width: 42px; height: 24px; flex: none; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span { position: absolute; inset: 0; background: var(--line); border-radius: 24px; cursor: pointer; transition: .15s; }
+.switch span::after { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; }
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(18px); }
+.hero { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.dot { width: 14px; height: 14px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.on { background: var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent); }
+.hero .big { font-size: 22px; font-weight: 650; }
+.hero .sub { color: var(--muted); }
+.hero .grow { flex: 1; min-width: 200px; }
+.locs { max-height: 380px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; margin-top: 10px; }
+.loc { display: grid; grid-template-columns: 34px 1fr 70px 80px; gap: 8px; align-items: center; padding: 7px 12px; border-top: 1px solid var(--line); }
+.loc:first-child { border-top: 0; }
+.loc:hover { background: var(--bg); }
+.loc .iso { font-weight: 600; color: var(--muted); font-size: 12px; }
+.loc .ping { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.loc.cur { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; min-height: 30px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--field); border: 1px solid var(--line); border-radius: 999px; padding: 3px 6px 3px 12px; font-family: ui-monospace, monospace; font-size: 13px; }
+.chip button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 5px; border-radius: 50%; }
+.chip button:hover { color: var(--danger); }
+.empty { color: var(--muted); font-style: italic; }
+.kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 14px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 550; }
+.help { color: var(--muted); font-size: 12.5px; margin: 6px 0 0; }
+#log { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line); max-height: 40vh; display: flex; flex-direction: column; z-index: 3; }
+#log .bar { display: flex; align-items: center; gap: 8px; padding: 7px 16px; cursor: pointer; font-size: 12.5px; color: var(--muted); }
+#log .bar b { color: var(--text); font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#log pre { margin: 0; padding: 0 16px 12px; overflow: auto; font: 12px/1.5 ui-monospace, monospace; display: none; }
+#log.open pre { display: block; }
+#log .cmd { color: var(--accent); }
+#log .err { color: var(--danger); }
+.toast-ok { color: var(--accent) !important; } .toast-err { color: var(--danger) !important; }
+@media (max-width: 640px) {
+  header { flex-wrap: wrap; padding: 12px 16px; }
+  nav { order: 3; width: 100%; overflow-x: auto; }
+  .row { grid-template-columns: 1fr; gap: 8px; }
+  .ctl { justify-content: flex-start; }
+  .loc { grid-template-columns: 30px 1fr 50px 70px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>AdGuard VPN</h1><span class="ver" id="ver"></span>
+  <span class="sp"></span>
+  <nav id="nav">
+    <button data-tab="conn" class="on">Connection</button>
+    <button data-tab="settings">Settings</button>
+    <button data-tab="excl">Exclusions</button>
+    <button data-tab="account">Account</button>
+  </nav>
+  <button class="b" id="refresh" title="Reload state from CLI">↻</button>
+</header>
+
+<main>
+<!-- CONNECTION -->
+<section class="tab on" id="tab-conn">
+  <div class="card">
+    <div class="hero">
+      <div class="dot" id="dot"></div>
+      <div class="grow">
+        <div class="big" id="st-big">Loading…</div>
+        <div class="sub" id="st-sub"></div>
+      </div>
+      <div class="ctl">
+        <button class="b primary" id="btn-fastest">Connect fastest</button>
+        <button class="b" id="btn-last">Connect last</button>
+        <button class="b danger" id="btn-disc">Disconnect</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Locations</h2>
+    <div class="row" style="border:0;padding-top:0">
+      <input type="text" id="loc-q" placeholder="Filter by city, country or ISO code…">
+      <div class="ctl">
+        <span class="seg" id="ipver">
+          <button data-v="" class="on">IPv4+6</button><button data-v="4">IPv4 only</button><button data-v="6">IPv6 only</button>
+        </span>
+      </div>
+    </div>
+    <div class="locs" id="locs"><div class="loc"><span></span><span class="empty">Loading locations…</span></div></div>
+    <p class="help">Ping estimates come from <code>list-locations</code>. Click Connect on a row to switch.</p>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="tab" id="tab-settings">
+  <div class="card">
+    <h2>Operating mode</h2>
+    <div class="row"><div class="lbl"><b>VPN mode</b><small>TUN routes all traffic; SOCKS exposes a local proxy only apps you configure will use.</small></div>
+      <div class="ctl"><span class="seg" data-setter="set-mode" data-key="Mode"><button data-v="tun">TUN</button><button data-v="socks">SOCKS</button></span></div></div>
+    <div class="row"><div class="lbl"><b>Tunnel routing mode</b><small>auto: CLI sets routes · script: runs your route script · none: you route manually.</small></div>
+      <div class="ctl"><span class="seg" data-setter="set-tun-routing-mode" data-key="Tunnel routing mode"><button data-v="auto">Auto</button><button data-v="script">Script</button><button data-v="none">None</button></span></div></div>
+    <div class="row"><div class="lbl"><b>Route script</b><small>Create the route script (with correct permissions) used by “script” routing.</small></div>
+      <div class="ctl"><button class="b" data-cmd='{"action":"config","setter":"create-route-script"}'>Create route script</button></div></div>
+    <div class="row"><div class="lbl"><b>Outbound interface override</b><small>Force VPN traffic out of a specific network interface. Current: <span data-show="Outbound interface override"></span></small></div>
+      <div class="ctl"><select id="bound-if"></select><button class="b" id="bound-if-set">Apply</button></div></div>
+  </div>
+
+  <div class="card">
+    <h2>SOCKS proxy</h2>
+    <div class="row"><div class="lbl"><b>Listen host</b><small>Non-localhost addresses must be protected with username and password.</small></div>
+      <div class="ctl"><input type="text" data-field="set-socks-host" data-key="SOCKS host"><button class="b" data-apply="set-socks-host">Set</button></div></div>
+    <div class="row"><div class="lbl"><b>Port</b></div>
+      <div class="ctl"><input type="number" min="1" max="65535" data-field="set-socks-port" data-key="SOCKS port"><button class="b" data-apply="set-socks-port">Set</button></div></div>
+    <div class="row"><div class="lbl"><b>Username</b></div>
+      <div class="ctl"><input type="text" data-field="set-socks-username" data-key="SOCKS username" autocomplete="off"><button class="b" data-apply="set-socks-username">Set</button></div></div>
+    <div class="row"><div class="lbl"><b>Password</b><small>Never displayed; set a new one here.</small></div>
+      <div class="ctl"><input type="password" data-field="set-socks-password" autocomplete="new-password"><button class="b" data-apply="set-socks-password">Set</button></div></div>
+    <div class="row"><div class="lbl"><b>Clear authentication</b><small>Remove SOCKS username and password.</small></div>
+      <div class="ctl"><button class="b danger" data-cmd='{"action":"config","setter":"clear-socks-auth"}' data-confirm="Clear SOCKS username and password?">Clear auth</button></div></div>
+  </div>
+
+  <div class="card">
+    <h2>DNS &amp; protocol</h2>
+    <div class="row"><div class="lbl"><b>DNS upstream</b><small>e.g. <code>1.1.1.1</code>, <code>https://dns.adguard-dns.com/dns-query</code>, <code>tls://…</code>, <code>quic://…</code>. Current: <span data-show="DNS upstream"></span></small></div>
+      <div class="ctl"><input type="text" id="dns" placeholder="Upstream address"><button class="b" id="dns-set">Set</button><button class="b" id="dns-def">Default</button></div></div>
+    <div class="row"><div class="lbl"><b>Change system DNS</b><small>Point the system resolver at the VPN’s DNS while connected.</small></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-change-system-dns" data-key="Change system DNS"><span></span></label></div></div>
+    <div class="row"><div class="lbl"><b>Protocol</b></div>
+      <div class="ctl"><span class="seg" data-setter="set-protocol" data-key="Protocol"><button data-v="auto">Auto</button><button data-v="http2">HTTP/2</button><button data-v="quic">QUIC</button></span></div></div>
+    <div class="row"><div class="lbl"><b>Post-quantum cryptography</b><small>Algorithms resistant to future quantum-computer attacks.</small></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-post-quantum" data-key="Post-quantum cryptography"><span></span></label></div></div>
+  </div>
+
+  <div class="card">
+    <h2>App behaviour</h2>
+    <div class="row"><div class="lbl"><b>Show notifications</b><small>Desktop notifications about connection status.</small></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-show-notifications" data-key="Show notifications"><span></span></label></div></div>
+    <div class="row"><div class="lbl"><b>Show hints</b><small>Tips printed after CLI commands.</small></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-show-hints" data-key="Show hints"><span></span></label></div></div>
+    <div class="row"><div class="lbl"><b>Debug logging</b></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-debug-logging" data-key="Debug logging"><span></span></label></div></div>
+    <div class="row"><div class="lbl"><b>Update channel</b></div>
+      <div class="ctl"><span class="seg" data-setter="set-update-channel" data-key="Update channel"><button data-v="release">Release</button><button data-v="beta">Beta</button><button data-v="nightly">Nightly</button></span></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Privacy</h2>
+    <div class="row"><div class="lbl"><b>Crash reporting</b><small>Send crash reports to AdGuard developers.</small></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-crash-reporting" data-key="Crash reporting"><span></span></label></div></div>
+    <div class="row"><div class="lbl"><b>Anonymized usage data</b><small>Send telemetry to AdGuard developers.</small></div>
+      <div class="ctl"><label class="switch"><input type="checkbox" data-setter="set-telemetry" data-key="Send anonymized usage data"><span></span></label></div></div>
+  </div>
+  <p class="help">Most settings take effect on the next connection. Data directory: <code data-show="Data directory"></code></p>
+</section>
+
+<!-- EXCLUSIONS -->
+<section class="tab" id="tab-excl">
+  <div class="card">
+    <h2>Exclusion mode</h2>
+    <div class="row"><div class="lbl"><b>Active mode</b><small><b>General</b>: VPN on for everything except the listed sites. <b>Selective</b>: VPN on only for the listed sites.</small></div>
+      <div class="ctl"><span class="seg" id="excl-mode"><button data-v="general">General</button><button data-v="selective">Selective</button></span></div></div>
+  </div>
+  <div class="card" data-list="general">
+    <h2>General mode list <small class="act-tag"></small></h2>
+    <div class="chips"></div>
+    <div class="row" style="border:0"><textarea placeholder="example.com  *.example.org  192.168.1.0/24  [::1]:443  — separate with spaces or new lines"></textarea>
+      <div class="ctl"><button class="b primary" data-add>Add</button><button class="b danger" data-clear>Clear list</button></div></div>
+  </div>
+  <div class="card" data-list="selective">
+    <h2>Selective mode list <small class="act-tag"></small></h2>
+    <div class="chips"></div>
+    <div class="row" style="border:0"><textarea placeholder="example.com  *.example.org  192.168.1.0/24  [::1]:443  — separate with spaces or new lines"></textarea>
+      <div class="ctl"><button class="b primary" data-add>Add</button><button class="b danger" data-clear>Clear list</button></div></div>
+  </div>
+  <p class="help"><code>example.com</code> matches it and www. · <code>*.example.com</code> matches subdomains only · IPs accept optional <code>:port</code> · CIDR ranges like <code>10.0.0.0/8</code>.</p>
+</section>
+
+<!-- ACCOUNT -->
+<section class="tab" id="tab-account">
+  <div class="card">
+    <h2>License</h2>
+    <dl class="kv" id="lic"></dl>
+    <div class="ctl" style="justify-content:flex-start;margin-top:14px">
+      <button class="b" id="btn-login">Log in…</button>
+      <button class="b danger" data-cmd='{"action":"logout"}' data-confirm="Log out of AdGuard VPN on this machine?">Log out</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Updates</h2>
+    <div class="row"><div class="lbl"><b>Version</b><small id="ver2"></small></div>
+      <div class="ctl"><button class="b" data-cmd='{"action":"check-update"}'>Check for updates</button>
+      <button class="b primary" data-cmd='{"action":"update"}' data-confirm="Install the latest AdGuard VPN CLI if available?">Update</button></div></div>
+  </div>
+  <div class="card">
+    <h2>Logs</h2>
+    <div class="row"><div class="lbl"><b>Export logs</b><small>Zip of logs for support. Directory or file path.</small></div>
+      <div class="ctl"><input type="text" id="logpath" value="~/Downloads"><button class="b" id="btn-logs">Export</button></div></div>
+  </div>
+</section>
+</main>
+
+<div id="log">
+  <div class="bar" id="log-bar"><span>Output ▴</span><b id="log-last">Ready</b></div>
+  <pre id="log-pre"></pre>
+</div>
+
+<script>
+const TOKEN = "__TOKEN__";
+let S = null, LOCS = [], ipver = "";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function api(path, body) {
+  const r = await fetch(path, { method: body ? "POST" : "GET", headers: { "X-Token": TOKEN, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined });
+  return r.json();
+}
+
+function log(res) {
+  const pre = $("#log-pre"), last = $("#log-last");
+  const line = `<span class="cmd">$ ${esc(res.command || "")}</span>\n<span class="${res.ok ? "" : "err"}">${esc(res.output || "(no output)")}</span>\n\n`;
+  pre.innerHTML = line + pre.innerHTML;
+  const first = (res.output || "").split("\n").filter(Boolean).pop() || (res.ok ? "Done" : "Failed");
+  last.textContent = first; last.className = res.ok ? "toast-ok" : "toast-err";
+  if (!res.ok) $("#log").classList.add("open");
+}
+
+async function run(body, btn) {
+  const btns = btn ? [btn] : [];
+  btns.forEach(b => b.disabled = true);
+  $("#log-last").textContent = "Running…"; $("#log-last").className = "";
+  try { const res = await api("/api/run", body); log(res); await refresh(); return res; }
+  finally { btns.forEach(b => b.disabled = false); }
+}
+
+const isOn = v => /^(default \()?on\)?$/i.test(v || "");
+const norm = v => (v || "").replace(/^Default \((.*)\)$/i, "$1").toLowerCase();
+
+function render() {
+  const c = S.config, st = S.status;
+  $("#ver").textContent = S.version; $("#ver2").textContent = S.version;
+  $("#dot").classList.toggle("on", st.connected);
+  $("#st-big").textContent = st.connected ? `Connected · ${st.location}` : "Disconnected";
+  $("#st-sub").textContent = st.connected ? `${st.mode} mode${st.iface ? " on " + st.iface : ""}` : (st.text.split("\n")[0] || "");
+  $("#btn-disc").disabled = !st.connected;
+
+  $$("[data-show]").forEach(e => e.textContent = c[e.dataset.show] ?? "");
+  $$(".seg[data-setter]").forEach(seg => {
+    const cur = norm(c[seg.dataset.key]);
+    $$("button", seg).forEach(b => b.classList.toggle("on", b.dataset.v === cur));
+  });
+  $$("input[type=checkbox][data-setter]").forEach(i => i.checked = isOn(c[i.dataset.key]));
+  $$("input[data-field][data-key]").forEach(i => { if (document.activeElement !== i) i.value = c[i.dataset.key] ?? ""; });
+  const dns = c["DNS upstream"] || ""; if (document.activeElement !== $("#dns")) $("#dns").value = /^default/i.test(dns) ? "" : dns;
+
+  const bi = $("#bound-if"), curIf = c["Outbound interface override"];
+  bi.innerHTML = `<option value="">(not set)</option>` + S.interfaces.map(n => `<option ${n === curIf ? "selected" : ""}>${esc(n)}</option>`).join("");
+
+  const em = S.exclusions.mode;
+  $$("#excl-mode button").forEach(b => b.classList.toggle("on", b.dataset.v === em));
+  $$("[data-list]").forEach(card => {
+    const m = card.dataset.list, items = S.exclusions[m];
+    $(".act-tag", card).textContent = m === em ? "· active" : "";
+    $(".chips", card).innerHTML = items.length ? items.map(x => `<span class="chip">${esc(x)}<button title="Remove" data-rm="${esc(x)}">×</button></span>`).join("")
+      : `<span class="empty">No exclusions</span>`;
+  });
+
+  const L = S.license;
+  $("#lic").innerHTML = L.logged_in
+    ? `<dt>Account</dt><dd>${esc(L.account)}</dd><dt>Plan</dt><dd>${esc(L.plan || "")}</dd>` +
+      (L.devices ? `<dt>Devices</dt><dd>up to ${L.devices}</dd>` : "") + (L.renews ? `<dt>Renews</dt><dd>${esc(L.renews)}</dd>` : "")
+    : `<dt>Status</dt><dd>${esc(L.text || "Not logged in")}</dd>`;
+  renderLocs();
+}
+
+function renderLocs() {
+  const q = $("#loc-q").value.trim().toLowerCase();
+  const cur = S?.status.connected ? S.status.location.toLowerCase() : "";
+  const rows = LOCS.filter(l => !q || `${l.iso} ${l.country} ${l.city}`.toLowerCase().includes(q));
+  $("#locs").innerHTML = rows.length ? rows.map(l => `<div class="loc ${l.city.toLowerCase() === cur ? "cur" : ""}">
+      <span class="iso">${l.iso}</span><span>${esc(l.city)} <span style="color:var(--muted)">· ${esc(l.country)}</span></span>
+      <span class="ping">${l.ping} ms</span><button class="b" data-loc="${esc(l.city)}">Connect</button></div>`).join("")
+    : `<div class="loc"><span></span><span class="empty">No locations match</span></div>`;
+}
+
+async function refresh() { S = await api("/api/state"); render(); }
+async function loadLocs() { const r = await api("/api/locations"); LOCS = r.locations; renderLocs(); }
+
+// --- events ---
+$("#nav").onclick = e => { const t = e.target.dataset.tab; if (!t) return;
+  $$("#nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  $$("section.tab").forEach(s => s.classList.toggle("on", s.id === "tab-" + t)); };
+$("#refresh").onclick = () => { refresh(); loadLocs(); };
+$("#log-bar").onclick = () => $("#log").classList.toggle("open");
+
+$("#btn-fastest").onclick = e => run({ action: "connect", fastest: true, ip: ipver }, e.target);
+$("#btn-last").onclick = e => run({ action: "connect", ip: ipver }, e.target);
+$("#btn-disc").onclick = e => run({ action: "disconnect" }, e.target);
+$("#loc-q").oninput = renderLocs;
+$("#ipver").onclick = e => { const v = e.target.dataset.v; if (v === undefined) return; ipver = v;
+  $$("#ipver button").forEach(b => b.classList.toggle("on", b === e.target)); };
+$("#locs").onclick = e => { const l = e.target.dataset.loc; if (l) run({ action: "connect", location: l, ip: ipver }, e.target); };
+
+$$(".seg[data-setter]").forEach(seg => seg.onclick = e => {
+  const v = e.target.dataset.v; if (!v || e.target.classList.contains("on")) return;
+  run({ action: "config", setter: seg.dataset.setter, value: v }, e.target); });
+$$("input[type=checkbox][data-setter]").forEach(i => i.onchange = () =>
+  run({ action: "config", setter: i.dataset.setter, value: i.checked ? "on" : "off" }));
+$$("[data-apply]").forEach(b => b.onclick = () => {
+  const s = b.dataset.apply, inp = $(`[data-field="${s}"]`);
+  run({ action: "config", setter: s, value: inp.value.trim() }, b).then(() => { if (inp.type === "password") inp.value = ""; }); });
+$$("[data-cmd]").forEach(b => b.onclick = () => {
+  if (b.dataset.confirm && !confirm(b.dataset.confirm)) return;
+  run(JSON.parse(b.dataset.cmd), b); });
+$("#dns-set").onclick = e => run({ action: "config", setter: "set-dns", value: $("#dns").value.trim() }, e.target);
+$("#dns-def").onclick = e => run({ action: "config", setter: "set-dns", value: "default" }, e.target);
+$("#bound-if-set").onclick = e => run({ action: "config", setter: "set-bound-if-override", value: $("#bound-if").value }, e.target);
+
+$("#excl-mode").onclick = e => { const v = e.target.dataset.v; if (v && !e.target.classList.contains("on")) run({ action: "excl-mode", value: v }, e.target); };
+$$("[data-list]").forEach(card => {
+  const m = card.dataset.list;
+  $("[data-add]", card).onclick = e => { const ta = $("textarea", card);
+    run({ action: "excl-add", mode: m, value: ta.value }, e.target).then(r => { if (r.ok) ta.value = ""; }); };
+  $("[data-clear]", card).onclick = e => { if (confirm(`Remove every entry from the ${m} list?`)) run({ action: "excl-clear", mode: m }, e.target); };
+  $(".chips", card).onclick = e => { const x = e.target.dataset.rm; if (x) run({ action: "excl-remove", mode: m, value: x }, e.target); };
+});
+
+$("#btn-login").onclick = async () => log({ command: "adguardvpn-cli login", ...(await api("/api/run", { action: "login" })) });
+$("#btn-logs").onclick = e => run({ action: "export-logs", path: $("#logpath").value.trim() }, e.target);
+
+refresh(); loadLocs();
+setInterval(() => { if (!document.hidden) api("/api/state").then(s => { S = s; render(); }); }, 15000);
+</script>
+</body>
+</html>
