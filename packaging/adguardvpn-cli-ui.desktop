@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=AdGuard VPN
+GenericName=VPN settings
+Comment=Manage AdGuard VPN CLI connection and settings
+Exec=adguardvpn-cli-ui
+Icon=adguardvpn-cli-ui
+Terminal=false
+Categories=Network;
+Keywords=vpn;adguard;proxy;socks;

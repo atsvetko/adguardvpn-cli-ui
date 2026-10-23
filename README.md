@@ -18,6 +18,21 @@ It exposes every setting and command the CLI offers, so you don't have to rememb
 - **Account** – license info, log in, log out, check for and install updates, export logs.
 - An output panel shows the exact CLI command and its output for every action.
 
+## Install (Debian / Ubuntu)
+
+Download the `.deb` from the [latest release](https://github.com/atsvetko/adguardvpn-cli-ui/releases/latest)
+and install it:
+
+```bash
+sudo apt install ./adguardvpn-cli-ui_*_all.deb
+```
+
+Then open **AdGuard VPN** from your app menu, or run `adguardvpn-cli-ui`.
+To remove it: `sudo apt remove adguardvpn-cli-ui`.
+
+The package works on any CPU architecture. Its only dependency is `python3`, which every
+Ubuntu/Debian desktop already has, so nothing else gets installed.
+
 ## Requirements
 
 - Linux with [AdGuard VPN CLI](https://github.com/AdguardTeam/AdGuardVPNCLI) installed and on `PATH`
@@ -25,7 +40,7 @@ It exposes every setting and command the CLI offers, so you don't have to rememb
 - Python 3.8+ (standard library only, nothing to `pip install`)
 - `zenity`, `kdialog` or `ssh-askpass` for the password prompt when connecting in TUN mode
 
-## Usage
+## Run from source
 
 ```bash
 git clone https://github.com/atsvetko/adguardvpn-cli-ui.git
@@ -43,6 +58,14 @@ To add an **AdGuard VPN** entry to your desktop app menu:
 
 Log in once with `adguardvpn-cli login` (or the **Log in…** button, which opens a terminal),
 since login is interactive.
+
+## Building the .deb
+
+```bash
+./packaging/build-deb.sh 1.0.0
+```
+
+Produces `dist/adguardvpn-cli-ui_1.0.0_all.deb`. Only `dpkg-deb` is needed.
 
 ## How it works
 
